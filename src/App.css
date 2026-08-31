@@ -32,6 +32,7 @@ h3 { margin: 0 0 8px; font-size: 23px; letter-spacing: -.03em; }
 .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
 .button { border: 0; border-radius: 14px; padding: 12px 18px; font-weight: 700; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
 .button:hover { transform: translateY(-1px); }
+.button:disabled { cursor: not-allowed; opacity: .55; transform: none; }
 .primary { background: #0f766e; color: #fff; box-shadow: rgba(15,118,110,.24) 0 22px 38px -22px; }
 .ghost { background: rgba(255,255,255,.78); color: #0f766e; border: 1px solid #cde7e2; }
 .ghost.dark { background: rgba(255,255,255,.08); color: #ccfbf1; border-color: rgba(255,255,255,.16); }
@@ -73,11 +74,17 @@ input:focus { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.1); 
 .status { display: inline-flex; border-radius: 999px; padding: 7px 12px; text-transform: uppercase; font-size: 12px; letter-spacing: .1em; font-weight: 900; margin-bottom: 18px; }
 .status.paid { background: #22c55e; color: #052e16; }
 .status.unpaid { background: #fef3c7; color: #92400e; }
+.status.expired { background: #fecaca; color: #991b1b; }
+.address { color: #ccfbf1; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 10px; word-break: break-all; font-size: 13px; }
 .split, .metric { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid #e2e8f0; padding: 17px 0; }
 .split span { display: block; color: #64748d; font-size: 13px; margin-top: 4px; }
 .metric strong { color: #0f766e; }
 .fine { color: #64748d; line-height: 1.7; }
 .insight { background: linear-gradient(145deg, #ffffff, #f1fbf8); }
+.invoice-list { display: grid; gap: 10px; margin-top: 16px; }
+.invoice-list button { width: 100%; text-align: left; border: 1px solid #dbecef; background: #fff; color: #061b31; border-radius: 14px; padding: 12px; font-weight: 800; cursor: pointer; }
+.invoice-list button.active { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.08); }
+.invoice-list span { display: block; margin-top: 3px; color: #64748d; font-size: 13px; font-weight: 600; }
 
 @media (max-width: 880px) {
   main { width: min(100% - 24px, 680px); padding-top: 12px; }
