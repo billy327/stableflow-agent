@@ -85,6 +85,24 @@ input:focus { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.1); 
 .invoice-list button { width: 100%; text-align: left; border: 1px solid #dbecef; background: #fff; color: #061b31; border-radius: 14px; padding: 12px; font-weight: 800; cursor: pointer; }
 .invoice-list button.active { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.08); }
 .invoice-list span { display: block; margin-top: 3px; color: #64748d; font-size: 13px; font-weight: 600; }
+.center { text-align: center; }
+.pay-shell { min-height: 100vh; display: grid; place-items: center; padding: 28px; background: radial-gradient(circle at 50% 0%, rgba(20,184,166,.12), transparent 38%), #f6fbfa; }
+.pay-page-card { width: min(560px, 100%); border: 1px solid rgba(15,118,110,.14); border-radius: 34px; padding: 30px; background: rgba(255,255,255,.9); box-shadow: rgba(15,23,42,.14) 0 34px 80px -36px; }
+.pay-brand { display: inline-flex; align-items: center; gap: 10px; color: #061b31; font-weight: 700; margin-bottom: 22px; }
+.pay-brand img { width: 44px; height: 44px; object-fit: contain; }
+.receipt-state { display: inline-flex; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.receipt-state.unpaid { color: #92400e; background: #fef3c7; }
+.receipt-state.paid { color: #065f46; background: #d1fae5; }
+.pay-page-card h1 { font-size: clamp(36px, 7vw, 58px); margin: 14px 0 8px; line-height: .96; }
+.pay-page-card > p { color: #64748b; font-size: 18px; margin: 0 0 20px; }
+.pay-amount { font-size: clamp(38px, 8vw, 62px); font-weight: 700; color: #061b31; letter-spacing: -.04em; margin: 18px 0; }
+.pay-amount span { font-size: 18px; color: #0f766e; letter-spacing: 0; }
+.qr-wrap { display: grid; place-items: center; padding: 18px; border-radius: 26px; background: linear-gradient(145deg, #effaf7, #ffffff); border: 1px solid #dbece8; margin: 18px 0; }
+.qr-wrap img { width: 220px; height: 220px; border-radius: 18px; }
+.copy-field { display: grid; gap: 8px; font-size: 13px; color: #0f766e; font-weight: 700; margin: 16px 0; }
+.copy-field input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.confirmed-box { border-radius: 22px; padding: 22px; color: #065f46; background: #d1fae5; border: 1px solid #a7f3d0; margin: 22px 0; line-height: 1.5; }
+.pay-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
 
 @media (max-width: 880px) {
   main { width: min(100% - 24px, 680px); padding-top: 12px; }

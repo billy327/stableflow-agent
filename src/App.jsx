@@ -27,7 +27,64 @@ function money(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n || 0))
 }
 
+function PaymentPage({ id }) {
+  const [invoice, setInvoice] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  async function loadInvoice() {
+    const res = await fetch(`${API}/invoices/${id}`)
+    if (!res.ok) throw new Error('Invoice not found')
+    setInvoice(await res.json())
+  }
+
+  useEffect(() => {
+    loadInvoice().catch(() => setInvoice(false)).finally(() => setLoading(false))
+    const timer = setInterval(() => loadInvoice().catch(() => {}), 5000)
+    return () => clearInterval(timer)
+  }, [id])
+
+  if (loading) return <main className="pay-shell"><div className="pay-page-card">Loading invoice...</div></main>
+  if (!invoice) return <main className="pay-shell"><div className="pay-page-card"><h1>Invoice not found</h1><p>This payment link is invalid or expired.</p></div></main>
+
+  const qrPayload = `ethereum:${invoice.payment_address}?value=${invoice.amount}&memo=${encodeURIComponent(invoice.memo || invoice.id)}`
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrPayload)}`
+  const isPaid = invoice.status === 'paid'
+
+  async function copyAddress() {
+    await navigator.clipboard.writeText(invoice.payment_address)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1600)
+  }
+
+  return (
+    <main className="pay-shell">
+      <section className="pay-page-card">
+        <a className="pay-brand" href="/"><img src={brandLogo} alt="Stable Flow Agent" /><span>StableFlow</span></a>
+        <div className={`receipt-state ${isPaid ? 'paid' : 'unpaid'}`}>{isPaid ? 'Payment confirmed' : 'Awaiting USDC payment'}</div>
+        <h1>{invoice.customer}</h1>
+        <p>{invoice.memo}</p>
+        <div className="pay-amount">{money(invoice.amount)} <span>USDC</span></div>
+        {isPaid ? (
+          <div className="confirmed-box">Receipt ready. This invoice has been marked as paid by the operator.</div>
+        ) : (
+          <>
+            <div className="qr-wrap"><img src={qrUrl} alt="USDC payment QR code" /></div>
+            <label className="copy-field">Payment address<input readOnly value={invoice.payment_address} /></label>
+            <button className="button primary full" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}</button>
+            <p className="fine center">Mock settlement mode: send no funds unless this address is intentionally configured for a real operator.</p>
+          </>
+        )}
+        <div className="pay-meta"><span>Invoice #{invoice.id}</span><span>{invoice.status}</span></div>
+      </section>
+    </main>
+  )
+}
+
 function App() {
+  const paymentMatch = window.location.pathname.match(/^\/pay\/([a-zA-Z0-9_-]+)/)
+  if (paymentMatch) return <PaymentPage id={paymentMatch[1]} />
+
   const [invoice, setInvoice] = useState({ customer: 'Nova Studio', amount: 250, memo: 'Design retainer', status: 'unpaid' })
   const [invoices, setInvoices] = useState([])
   const [activeId, setActiveId] = useState('')
