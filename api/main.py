@@ -1,8 +1,11 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
+import json
 import os
 import sqlite3
+import urllib.request
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,11 +61,18 @@ def init_db():
               status TEXT NOT NULL DEFAULT 'unpaid',
               payment_address TEXT NOT NULL,
               created_at TEXT NOT NULL,
-              updated_at TEXT NOT NULL
-            )
-            """
+            updated_at TEXT NOT NULL
         )
-        conn.commit()
+        """
+    )
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(invoices)").fetchall()}
+    for col, ddl in {
+        "paid_tx_hash": "ALTER TABLE invoices ADD COLUMN paid_tx_hash TEXT",
+        "paid_at": "ALTER TABLE invoices ADD COLUMN paid_at TEXT",
+    }.items():
+        if col not in columns:
+            conn.execute(ddl)
+    conn.commit()
 
 
 def row_to_invoice(row):
@@ -81,12 +91,58 @@ def row_to_invoice(row):
         "explorer_url": EXPLORER_URL,
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
+        "paid_tx_hash": row["paid_tx_hash"] if "paid_tx_hash" in row.keys() else None,
+        "paid_at": row["paid_at"] if "paid_at" in row.keys() else None,
     }
 
 
-@app.on_event("startup")
-def startup():
+def find_matching_payment(row):
+    if row["status"] == "paid":
+        return None
+    url = f"{EXPLORER_URL}/api/v2/addresses/{PAYMENT_ADDRESS}/transactions"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "StableFlow-Agent/0.1"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+    expected = Decimal(str(row["amount"])) * Decimal(10) ** 18
+    created = row["created_at"]
+    for tx in data.get("items", []):
+        if tx.get("status") != "ok":
+            continue
+        to_hash = ((tx.get("to") or {}).get("hash") or "").lower()
+        if to_hash != PAYMENT_ADDRESS.lower():
+            continue
+        if tx.get("timestamp", "") < created:
+            continue
+        value = Decimal(tx.get("value") or "0")
+        if value >= expected:
+            return {"hash": tx.get("hash"), "timestamp": tx.get("timestamp")}
+    return None
+
+
+def sync_payment_status(invoice_id: str):
+    row = get_invoice_row(invoice_id)
+    if not row:
+        return None
+    match = find_matching_payment(row)
+    if match:
+        now = now_iso()
+        with connect() as conn:
+            conn.execute(
+                "UPDATE invoices SET status = ?, paid_tx_hash = ?, paid_at = ?, updated_at = ? WHERE id = ?",
+                ("paid", match["hash"], match["timestamp"] or now, now, invoice_id),
+            )
+        return get_invoice_row(invoice_id)
+    return row
+
+
+def get_invoice_row(invoice_id: str):
     init_db()
+    with connect() as conn:
+        return conn.execute("SELECT * FROM invoices WHERE id = ?", (invoice_id,)).fetchone()
 
 
 @app.get("/api/health")
@@ -99,7 +155,8 @@ def list_invoices():
     init_db()
     with connect() as conn:
         rows = conn.execute("SELECT * FROM invoices ORDER BY created_at DESC LIMIT 50").fetchall()
-    return [row_to_invoice(row) for row in rows]
+    synced = [sync_payment_status(row["id"]) or row for row in rows]
+    return [row_to_invoice(row) for row in synced]
 
 
 @app.post("/api/invoices", status_code=201)
@@ -122,8 +179,7 @@ def create_invoice(payload: InvoiceCreate):
 @app.get("/api/invoices/{invoice_id}")
 def get_invoice(invoice_id: str):
     init_db()
-    with connect() as conn:
-        row = conn.execute("SELECT * FROM invoices WHERE id = ?", (invoice_id,)).fetchone()
+    row = sync_payment_status(invoice_id)
     if not row:
         raise HTTPException(status_code=404, detail="Invoice not found")
     return row_to_invoice(row)

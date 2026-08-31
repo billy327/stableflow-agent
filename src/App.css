@@ -104,7 +104,8 @@ input:focus { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.1); 
 .copy-field input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
 .explorer-link { display: block; text-align: center; margin: 12px 0; color: #0f766e; font-weight: 800; }
 .dark-link { display: inline-block; color: #99f6e4; font-weight: 800; margin: 0 0 16px; }
-.confirmed-box { border-radius: 22px; padding: 22px; color: #065f46; background: #d1fae5; border: 1px solid #a7f3d0; margin: 22px 0; line-height: 1.5; }
+.confirmed-box { border-radius: 22px; padding: 22px; color: #065f46; background: #d1fae5; border: 1px solid #a7f3d0; margin: 22px 0; line-height: 1.5; display: grid; gap: 8px; }
+.confirmed-box a { color: #047857; font-weight: 800; }
 .pay-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
 
 @media (max-width: 880px) {

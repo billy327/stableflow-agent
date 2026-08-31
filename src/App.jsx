@@ -72,7 +72,11 @@ function PaymentPage({ id }) {
         <p>{invoice.memo}</p>
         <div className="pay-amount">{money(invoice.amount)} <span>{invoice.currency || 'USDC'}</span></div>
         {isPaid ? (
-          <div className="confirmed-box">Receipt ready. This invoice has been marked as paid by the operator.</div>
+          <div className="confirmed-box">
+            <strong>Payment confirmed.</strong>
+            <span>StableFlow detected this Arc Testnet settlement and marked the invoice paid.</span>
+            {invoice.paid_tx_hash && <a href={`${invoice.explorer_url}/tx/${invoice.paid_tx_hash}`} target="_blank" rel="noreferrer">View payment transaction</a>}
+          </div>
         ) : (
           <>
             <div className="qr-wrap"><img src={qrUrl} alt="USDC payment QR code" /></div>
@@ -217,6 +221,7 @@ function App() {
           {displayInvoice.explorer_url && <a className="dark-link" href={`${displayInvoice.explorer_url}/address/${displayInvoice.payment_address}`} target="_blank" rel="noreferrer">Open in Arcscan</a>}
           <button className="button primary full" disabled={!displayInvoice.id} onClick={() => updateStatus('paid')}>Mark as paid</button>
           <button className="button ghost dark full" disabled={!displayInvoice.id} onClick={() => updateStatus('unpaid')}>Reset unpaid</button>
+          {displayInvoice.paid_tx_hash && <a className="dark-link" href={`${displayInvoice.explorer_url}/tx/${displayInvoice.paid_tx_hash}`} target="_blank" rel="noreferrer">Payment tx</a>}
         </div>
       </section>
 
