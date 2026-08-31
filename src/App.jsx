@@ -75,8 +75,9 @@ function PaymentPage({ id }) {
           <div className="confirmed-box">
             <strong>Payment confirmed.</strong>
             <span>StableFlow detected this Arc Testnet settlement and marked the invoice paid.</span>
-            {invoice.paid_tx_hash && <a href={`${invoice.explorer_url}/tx/${invoice.paid_tx_hash}`} target="_blank" rel="noreferrer">View payment transaction</a>}
-          </div>
+              {invoice.paid_tx_hash && <a href={`${invoice.explorer_url}/tx/${invoice.paid_tx_hash}`} target="_blank" rel="noreferrer">View payment transaction</a>}
+              {invoice.sweep_tx_hash && <a href={`${invoice.explorer_url}/tx/${invoice.sweep_tx_hash}`} target="_blank" rel="noreferrer">View treasury sweep</a>}
+</div>
         ) : (
           <>
             <div className="qr-wrap"><img src={qrUrl} alt="USDC payment QR code" /></div>
@@ -142,16 +143,30 @@ function App() {
   }
 
   async function updateStatus(status) {
-    if (!displayInvoice?.id) return
+    if (!displayInvoice.id) return
     const res = await fetch(`${API}/invoices/${displayInvoice.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status })
     })
-    if (!res.ok) return setNotice('Gagal update status.')
-    const updated = await res.json()
-    setInvoices((items) => items.map((item) => item.id === updated.id ? updated : item))
-    setNotice(`Invoice ${updated.id} marked ${updated.status}.`)
+    if (res.ok) {
+      const updated = await res.json()
+      setSelectedInvoice(updated)
+      setNotice(`Invoice ${updated.id} marked ${updated.status}.`)
+    }
+  }
+
+  async function sweepInvoice() {
+    if (!displayInvoice.id) return
+    const res = await fetch(`${API}/invoices/${displayInvoice.id}/sweep`, { method: 'POST' })
+    if (res.ok) {
+      const updated = await res.json()
+      setSelectedInvoice(updated)
+      setNotice(`Swept invoice ${updated.id} to treasury.`)
+    } else {
+      const err = await res.json().catch(() => ({ detail: 'Sweep failed' }))
+      setNotice(err.detail || 'Sweep failed')
+    }
   }
 
   return (
@@ -221,7 +236,9 @@ function App() {
           {displayInvoice.explorer_url && <a className="dark-link" href={`${displayInvoice.explorer_url}/address/${displayInvoice.payment_address}`} target="_blank" rel="noreferrer">Open in Arcscan</a>}
           <button className="button primary full" disabled={!displayInvoice.id} onClick={() => updateStatus('paid')}>Mark as paid</button>
           <button className="button ghost dark full" disabled={!displayInvoice.id} onClick={() => updateStatus('unpaid')}>Reset unpaid</button>
+          {displayInvoice.status === 'paid' && !displayInvoice.sweep_tx_hash && <button className="button ghost dark full" onClick={sweepInvoice}>Sweep to treasury</button>}
           {displayInvoice.paid_tx_hash && <a className="dark-link" href={`${displayInvoice.explorer_url}/tx/${displayInvoice.paid_tx_hash}`} target="_blank" rel="noreferrer">Payment tx</a>}
+          {displayInvoice.sweep_tx_hash && <a className="dark-link" href={`${displayInvoice.explorer_url}/tx/${displayInvoice.sweep_tx_hash}`} target="_blank" rel="noreferrer">Sweep tx</a>}
         </div>
       </section>
 

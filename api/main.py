@@ -7,9 +7,10 @@ import os
 import sqlite3
 import urllib.request
 
+from eth_account import Account
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from eth_account import Account
 from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -21,6 +22,8 @@ NETWORK_SLUG = os.getenv("STABLEFLOW_NETWORK_SLUG", "arc-testnet")
 CHAIN_ID = os.getenv("STABLEFLOW_CHAIN_ID", "5042002")
 CURRENCY = os.getenv("STABLEFLOW_CURRENCY", "USDC")
 EXPLORER_URL = os.getenv("STABLEFLOW_EXPLORER_URL", "https://testnet.arcscan.app")
+RPC_URL = os.getenv("STABLEFLOW_RPC_URL", "https://rpc.testnet.arc.network")
+TREASURY_ADDRESS = os.getenv("STABLEFLOW_TREASURY_ADDRESS", PAYMENT_ADDRESS)
 
 app = FastAPI(title="StableFlow Agent API", version="0.1.0")
 app.add_middleware(
@@ -71,6 +74,8 @@ def init_db():
         "paid_tx_hash": "ALTER TABLE invoices ADD COLUMN paid_tx_hash TEXT",
         "paid_at": "ALTER TABLE invoices ADD COLUMN paid_at TEXT",
         "deposit_private_key": "ALTER TABLE invoices ADD COLUMN deposit_private_key TEXT",
+        "sweep_tx_hash": "ALTER TABLE invoices ADD COLUMN sweep_tx_hash TEXT",
+        "swept_at": "ALTER TABLE invoices ADD COLUMN swept_at TEXT",
     }.items():
         if col not in columns:
             conn.execute(ddl)
@@ -100,6 +105,9 @@ def row_to_invoice(row):
         "updated_at": row["updated_at"],
         "paid_tx_hash": row["paid_tx_hash"] if "paid_tx_hash" in row.keys() else None,
         "paid_at": row["paid_at"] if "paid_at" in row.keys() else None,
+        "sweep_tx_hash": row["sweep_tx_hash"] if "sweep_tx_hash" in row.keys() else None,
+        "swept_at": row["swept_at"] if "swept_at" in row.keys() else None,
+        "treasury_address": TREASURY_ADDRESS,
     }
 
 
@@ -129,6 +137,54 @@ def find_matching_payment(row):
         if value >= expected:
             return {"hash": tx.get("hash"), "timestamp": tx.get("timestamp")}
     return None
+
+
+def rpc_call(method, params=None):
+    payload = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params or []}).encode()
+    req = urllib.request.Request(RPC_URL, data=payload, headers={"Content-Type": "application/json", "User-Agent": "StableFlow-Agent/0.1"})
+    with urllib.request.urlopen(req, timeout=12) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    if "error" in data:
+        raise RuntimeError(data["error"])
+    return data["result"]
+
+
+def sweep_invoice_to_treasury(invoice_id: str):
+    row = sync_payment_status(invoice_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    if row["status"] != "paid":
+        raise HTTPException(status_code=400, detail="Invoice is not paid yet")
+    if row["sweep_tx_hash"] if "sweep_tx_hash" in row.keys() else None:
+        return row
+    private_key = row["deposit_private_key"] if "deposit_private_key" in row.keys() else None
+    if not private_key:
+        raise HTTPException(status_code=400, detail="Invoice has no sweep key")
+
+    from_addr = row["payment_address"]
+    balance = int(rpc_call("eth_getBalance", [from_addr, "latest"]), 16)
+    gas_price = int(rpc_call("eth_gasPrice"), 16)
+    gas_limit = 21000
+    fee = gas_price * gas_limit
+    if balance <= fee:
+        raise HTTPException(status_code=400, detail="Insufficient balance for sweep gas")
+    nonce = int(rpc_call("eth_getTransactionCount", [from_addr, "pending"]), 16)
+    tx = {
+        "to": TREASURY_ADDRESS,
+        "value": balance - fee,
+        "gas": gas_limit,
+        "gasPrice": gas_price,
+        "nonce": nonce,
+        "chainId": int(CHAIN_ID),
+    }
+    signed = Account.sign_transaction(tx, private_key)
+    raw = "0x" + signed.raw_transaction.hex()
+    tx_hash = rpc_call("eth_sendRawTransaction", [raw])
+    now = now_iso()
+    with connect() as conn:
+        conn.execute("UPDATE invoices SET sweep_tx_hash = ?, swept_at = ?, updated_at = ? WHERE id = ?", (tx_hash, now, now, invoice_id))
+        conn.commit()
+    return get_invoice_row(invoice_id)
 
 
 def sync_payment_status(invoice_id: str):
@@ -189,6 +245,12 @@ def get_invoice(invoice_id: str):
     row = sync_payment_status(invoice_id)
     if not row:
         raise HTTPException(status_code=404, detail="Invoice not found")
+    return row_to_invoice(row)
+
+
+@app.post("/api/invoices/{invoice_id}/sweep")
+def sweep_invoice(invoice_id: str):
+    row = sweep_invoice_to_treasury(invoice_id)
     return row_to_invoice(row)
 
 
