@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import brandLogo from './assets/brand/logo-lockup-card.png'
-import workflowLogo from './assets/brand/live-payment-flow.png'
+import workflowLogo from './assets/brand/live-payment-flow-wide.png'
 import './App.css'
 
 const defaultSplits = [
@@ -37,7 +37,7 @@ function App() {
         <div className="nav-links"><a href="#workflow">Workflow</a><a href="#new">Invoice</a><a href="#dashboard">Dashboard</a></div>
       </nav>
 
-      <section className="hero" id="top">
+      <section className="hero stacked" id="top">
         <div className="hero-copy">
           <div className="badge">Stablecoin payment ops · MVP</div>
           <h1>Payment workflows that make USDC operations feel automatic.</h1>
@@ -49,11 +49,9 @@ function App() {
           <div className="trust-row"><span>USDC ready</span><span>Mock settlement</span><span>No wallet risk</span></div>
         </div>
 
-        <aside className="hero-card">
-          <div className="card-topline"><span>Live payment flow</span><strong>{money(12480)}</strong></div>
-          <img src={workflowLogo} alt="Automated payment workflow illustration" />
-          <div className="flow-footer"><span>Invoice → Reminder → Approval → Payment</span><b>On pace</b></div>
-        </aside>
+        <section className="flow-wide" id="workflow" aria-label="Live payment flow">
+          <img src={workflowLogo} alt="Live payment flow diagram" />
+        </section>
       </section>
 
 
