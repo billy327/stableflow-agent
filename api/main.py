@@ -9,6 +9,7 @@ import urllib.request
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from eth_account import Account
 from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -69,10 +70,16 @@ def init_db():
     for col, ddl in {
         "paid_tx_hash": "ALTER TABLE invoices ADD COLUMN paid_tx_hash TEXT",
         "paid_at": "ALTER TABLE invoices ADD COLUMN paid_at TEXT",
+        "deposit_private_key": "ALTER TABLE invoices ADD COLUMN deposit_private_key TEXT",
     }.items():
         if col not in columns:
             conn.execute(ddl)
     conn.commit()
+
+
+def create_deposit_wallet():
+    account = Account.create()
+    return account.address, account.key.hex()
 
 
 def row_to_invoice(row):
@@ -99,7 +106,8 @@ def row_to_invoice(row):
 def find_matching_payment(row):
     if row["status"] == "paid":
         return None
-    url = f"{EXPLORER_URL}/api/v2/addresses/{PAYMENT_ADDRESS}/transactions"
+    payment_address = row["payment_address"]
+    url = f"{EXPLORER_URL}/api/v2/addresses/{payment_address}/transactions"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "StableFlow-Agent/0.1"})
         with urllib.request.urlopen(req, timeout=8) as resp:
@@ -113,7 +121,7 @@ def find_matching_payment(row):
         if tx.get("status") != "ok":
             continue
         to_hash = ((tx.get("to") or {}).get("hash") or "").lower()
-        if to_hash != PAYMENT_ADDRESS.lower():
+        if to_hash != payment_address.lower():
             continue
         if tx.get("timestamp", "") < created:
             continue
@@ -164,12 +172,11 @@ def create_invoice(payload: InvoiceCreate):
     init_db()
     invoice_id = uuid4().hex[:10]
     ts = now_iso()
-    # Demo address placeholder. Production should assign chain-specific deposit addresses.
-    payment_address = PAYMENT_ADDRESS
+    payment_address, deposit_private_key = create_deposit_wallet()
     with connect() as conn:
         conn.execute(
-            "INSERT INTO invoices (id, customer, amount, memo, status, payment_address, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (invoice_id, payload.customer.strip(), float(payload.amount), payload.memo.strip(), "unpaid", payment_address, ts, ts),
+            "INSERT INTO invoices (id, customer, amount, memo, status, payment_address, deposit_private_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (invoice_id, payload.customer.strip(), float(payload.amount), payload.memo.strip(), "unpaid", payment_address, deposit_private_key, ts, ts),
         )
         row = conn.execute("SELECT * FROM invoices WHERE id = ?", (invoice_id,)).fetchone()
         conn.commit()
