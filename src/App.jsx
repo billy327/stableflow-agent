@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import brandLogo from './assets/brand/logo-lockup-card.png'
-import workflowLogo from './assets/brand/live-payment-flow-wide.png'
 import './App.css'
 
 const defaultSplits = [
@@ -13,6 +12,13 @@ const features = [
   ['01', 'Invoice link', 'Generate clean USDC payment links for clients and operators.'],
   ['02', 'Live status', 'Track unpaid, paid, settlement and reminder state from one console.'],
   ['03', 'Treasury rules', 'Preview merchant, savings and operations routing before funds move.'],
+]
+
+const flowSteps = [
+  { num: '1', title: 'Invoice', text: 'Create a USDC payment link and send it to the customer.', icon: '$' },
+  { num: '2', title: 'Reminder', text: 'Automated follow-ups keep the payment moving.', icon: '✉' },
+  { num: '3', title: 'Approval', text: 'Review status, confirm details, then approve settlement.', icon: '✓' },
+  { num: '4', title: 'Payment', text: 'Funds settle and route into the right wallets.', icon: '→' },
 ]
 
 function money(n) {
@@ -50,7 +56,25 @@ function App() {
         </div>
 
         <section className="flow-wide" id="workflow" aria-label="Live payment flow">
-          <img src={workflowLogo} alt="Live payment flow diagram" />
+          <div className="flow-header">
+            <div>
+              <p className="eyebrow">Live payment flow</p>
+              <h2>Invoice to settlement, tracked in real time.</h2>
+            </div>
+            <strong>{money(12480)}</strong>
+          </div>
+          <div className="flow-steps">
+            {flowSteps.map((step, idx) => (
+              <article className="flow-step" key={step.title}>
+                <div className="step-num">{step.num}</div>
+                <div className="step-icon">{step.icon}</div>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+                {idx < flowSteps.length - 1 && <span className="connector">→</span>}
+              </article>
+            ))}
+          </div>
+          <div className="flow-progress"><span>Invoice → Reminder → Approval → Payment</span><b>On pace</b></div>
         </section>
       </section>
 

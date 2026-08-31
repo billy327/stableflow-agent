@@ -40,13 +40,19 @@ h3 { margin: 0 0 8px; font-size: 23px; letter-spacing: -.03em; }
 .trust-row span { padding: 7px 10px; border: 1px solid #d9ebe7; border-radius: 999px; background: rgba(255,255,255,.58); }
 
 .flow-wide, .panel, .feature { background: rgba(255,255,255,.86); border: 1px solid rgba(184, 210, 219, .8); box-shadow: rgba(50,50,93,.22) 0 34px 52px -36px, rgba(0,0,0,.1) 0 18px 34px -24px; backdrop-filter: blur(14px); }
-.flow-wide { border-radius: 36px; padding: 12px; overflow: hidden; background: rgba(255,255,255,.44); }
-.flow-wide img { width: 100%; display: block; border-radius: 28px; }
-.card-topline, .flow-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: #0f766e; font-weight: 800; }
-.card-topline { margin: 2px 4px 16px; }
-.card-topline strong { color: #061b31; font-size: 30px; letter-spacing: -.05em; }
-.flow-footer { margin: 16px 4px 2px; }
-.flow-footer b { color: #108c3d; background: rgba(21,190,83,.18); border: 1px solid rgba(21,190,83,.32); padding: 4px 8px; border-radius: 999px; }
+.flow-wide { border-radius: 36px; padding: 30px; overflow: hidden; background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(239,250,247,.9)); }
+.flow-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 28px; }
+.flow-header h2 { max-width: 620px; margin-bottom: 0; }
+.flow-header strong { color: #061b31; font-size: clamp(32px, 5vw, 54px); letter-spacing: -.06em; white-space: nowrap; }
+.flow-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; position: relative; }
+.flow-step { position: relative; min-height: 250px; padding: 24px; border: 1px solid #dbecef; border-radius: 28px; background: #ffffff; box-shadow: rgba(50,50,93,.16) 0 28px 40px -34px, rgba(0,0,0,.08) 0 16px 28px -22px; }
+.step-num { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 999px; color: white; font-weight: 900; background: linear-gradient(135deg, #2563eb, #0f766e); }
+.step-icon { width: 68px; height: 68px; display: grid; place-items: center; margin: 22px 0 18px; border-radius: 22px; color: #0f766e; font-size: 34px; font-weight: 900; background: #ecfeff; border: 1px solid #bdece9; }
+.flow-step h3 { font-size: 26px; margin-bottom: 10px; }
+.flow-step p { color: #64748d; line-height: 1.5; margin: 0; font-size: 16px; }
+.connector { position: absolute; top: 116px; right: -26px; z-index: 2; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 999px; color: #0f766e; background: #dffbf4; border: 1px solid #bdece9; font-weight: 900; }
+.flow-progress { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 22px; padding: 13px 16px; border-radius: 18px; background: linear-gradient(135deg, #2563eb, #0f766e); color: white; font-weight: 800; }
+.flow-progress b { color: #052e16; background: #bbf7d0; padding: 6px 10px; border-radius: 999px; }
 
 .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 22px 0 28px; }
 .feature { border-radius: 26px; padding: 24px; }
@@ -60,6 +66,7 @@ input { width: 100%; border: 1px solid #d8e6ea; border-radius: 16px; padding: 14
 input:focus { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.1); }
 .success { color: #047857; background: #d1fae5; border-radius: 14px; padding: 12px; font-weight: 700; word-break: break-word; }
 .pay-card { background: radial-gradient(circle at 78% 5%, rgba(45,212,191,.24), transparent 34%), linear-gradient(145deg, #071b1a, #0a2f2c); color: white; border-color: rgba(255,255,255,.1); }
+.pay-card h2 { color: #ffffff; }
 .light { color: #99f6e4; }
 .memo { color: #99f6e4; }
 .amount { font-size: clamp(38px, 5vw, 58px); font-weight: 800; letter-spacing: -.06em; margin: 22px 0; }
@@ -80,6 +87,11 @@ input:focus { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.1); 
   .hero { padding-top: 28px; }
   .brand-lockup { margin-left: 0; }
   .panel, .feature { border-radius: 24px; padding: 22px; }
-  .flow-wide { border-radius: 24px; padding: 6px; }
-  .flow-wide img { border-radius: 20px; }
+  .flow-wide { border-radius: 24px; padding: 18px; }
+  .flow-header { display: block; }
+  .flow-header strong { display: block; margin-top: 8px; }
+  .flow-steps { grid-template-columns: 1fr; }
+  .flow-step { min-height: 0; }
+  .connector { display: none; }
+  .flow-progress { align-items: flex-start; flex-direction: column; }
 }
