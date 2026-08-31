@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import workflowLogo from './assets/brand/workflow-logo.png'
 import banner from './assets/brand/banner.png'
-import logoLockup from './assets/brand/logo-lockup.jpg'
+import logoLockup from './assets/brand/logo-lockup-clean.png'
 import './App.css'
 
 const defaultSplits = [
