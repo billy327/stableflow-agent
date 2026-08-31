@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import brandLogo from './assets/brand/logo-lockup-card.png'
-import workflowLogo from './assets/brand/workflow-logo.png'
-import banner from './assets/brand/banner.png'
+import workflowLogo from './assets/brand/live-payment-flow.png'
 import './App.css'
 
 const defaultSplits = [
@@ -57,9 +56,6 @@ function App() {
         </aside>
       </section>
 
-      <section className="brand-strip" id="workflow">
-        <img src={banner} alt="Stable Flow Agent payment workflow banner" />
-      </section>
 
       <section className="feature-grid">
         {features.map(([num, title, text]) => <article className="feature" key={title}><span>{num}</span><h3>{title}</h3><p>{text}</p></article>)}
