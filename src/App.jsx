@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import workflowLogo from './assets/brand/workflow-logo.png'
+import banner from './assets/brand/banner.png'
+import logoLockup from './assets/brand/logo-lockup.png'
 import './App.css'
 
 const defaultSplits = [
@@ -26,6 +29,7 @@ function App() {
     <main className="shell">
       <section className="hero">
         <div>
+          <img className="brand-lockup" src={logoLockup} alt="Stable Flow Agent logo" />
           <p className="eyebrow">StableFlow Agent MVP</p>
           <h1>Payment links and treasury splits for stablecoin-native operators.</h1>
           <p className="subcopy">Create a USDC invoice, share a payment link, track paid/unpaid state, and preview how funds split across merchant, savings, and ops wallets.</p>
@@ -34,11 +38,17 @@ function App() {
             <a href="#dashboard" className="button ghost">View dashboard</a>
           </div>
         </div>
-        <div className="card balance-card">
-          <span>Projected month</span>
-          <strong>{money(12480)}</strong>
-          <p>AI summary: revenue is stable, ops spend is under target, and savings allocation is on pace.</p>
+        <div className="hero-visual card">
+          <img src={workflowLogo} alt="Automated payment workflow illustration" />
+          <div className="visual-caption">
+            <span>Invoice → Reminder → Approval → Payment</span>
+            <strong>{money(12480)}</strong>
+          </div>
         </div>
+      </section>
+
+      <section className="banner-card">
+        <img src={banner} alt="Stable Flow Agent banner" />
       </section>
 
       <section id="new" className="grid two">
