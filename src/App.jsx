@@ -78,6 +78,7 @@ function PaymentPage({ id }) {
             <div className="qr-wrap"><img src={qrUrl} alt="USDC payment QR code" /></div>
             <label className="copy-field">Arc Testnet payment address<input readOnly value={invoice.payment_address} /></label>
             <button className="button primary full" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}</button>
+            {invoice.explorer_url && <a className="explorer-link" href={`${invoice.explorer_url}/address/${invoice.payment_address}`} target="_blank" rel="noreferrer">View address on Arcscan</a>}
             <p className="fine center">Arc Testnet mode: use testnet funds only. Mainnet funds are not expected here.</p>
           </>
         )}
@@ -213,6 +214,7 @@ function App() {
           <div className="amount">{money(displayInvoice.amount)} {displayInvoice.currency || 'USDC'}</div>
           <div className={`status ${displayInvoice.status}`}>{displayInvoice.status}</div>
           {displayInvoice.payment_address && <p className="address">Arc Testnet pay to: {displayInvoice.payment_address}</p>}
+          {displayInvoice.explorer_url && <a className="dark-link" href={`${displayInvoice.explorer_url}/address/${displayInvoice.payment_address}`} target="_blank" rel="noreferrer">Open in Arcscan</a>}
           <button className="button primary full" disabled={!displayInvoice.id} onClick={() => updateStatus('paid')}>Mark as paid</button>
           <button className="button ghost dark full" disabled={!displayInvoice.id} onClick={() => updateStatus('unpaid')}>Reset unpaid</button>
         </div>

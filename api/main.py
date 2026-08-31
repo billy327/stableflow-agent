@@ -14,8 +14,9 @@ APP_ORIGIN = "https://app.stableflowagent.xyz"
 PAYMENT_ADDRESS = os.getenv("STABLEFLOW_PAYMENT_ADDRESS", "0x96a7da081226d1712053c882f9d34855b58d794f")
 NETWORK_NAME = os.getenv("STABLEFLOW_NETWORK_NAME", "Arc Testnet")
 NETWORK_SLUG = os.getenv("STABLEFLOW_NETWORK_SLUG", "arc-testnet")
-CHAIN_ID = os.getenv("STABLEFLOW_CHAIN_ID", "")
+CHAIN_ID = os.getenv("STABLEFLOW_CHAIN_ID", "5042002")
 CURRENCY = os.getenv("STABLEFLOW_CURRENCY", "USDC")
+EXPLORER_URL = os.getenv("STABLEFLOW_EXPLORER_URL", "https://testnet.arcscan.app")
 
 app = FastAPI(title="StableFlow Agent API", version="0.1.0")
 app.add_middleware(
@@ -77,6 +78,7 @@ def row_to_invoice(row):
         "network_slug": NETWORK_SLUG,
         "chain_id": CHAIN_ID,
         "currency": CURRENCY,
+        "explorer_url": EXPLORER_URL,
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
     }
