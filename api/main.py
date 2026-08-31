@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
+import os
 import sqlite3
 
 from fastapi import FastAPI, HTTPException
@@ -9,6 +10,12 @@ from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "stableflow.db"
+APP_ORIGIN = "https://app.stableflowagent.xyz"
+PAYMENT_ADDRESS = os.getenv("STABLEFLOW_PAYMENT_ADDRESS", "0x96a7da081226d1712053c882f9d34855b58d794f")
+NETWORK_NAME = os.getenv("STABLEFLOW_NETWORK_NAME", "Arc Testnet")
+NETWORK_SLUG = os.getenv("STABLEFLOW_NETWORK_SLUG", "arc-testnet")
+CHAIN_ID = os.getenv("STABLEFLOW_CHAIN_ID", "")
+CURRENCY = os.getenv("STABLEFLOW_CURRENCY", "USDC")
 
 app = FastAPI(title="StableFlow Agent API", version="0.1.0")
 app.add_middleware(
@@ -65,7 +72,11 @@ def row_to_invoice(row):
         "memo": row["memo"],
         "status": row["status"],
         "payment_address": row["payment_address"],
-        "payment_url": f"https://app.stableflowagent.xyz/pay/{row['id']}",
+        "payment_url": f"{APP_ORIGIN}/pay/{row['id']}",
+        "network_name": NETWORK_NAME,
+        "network_slug": NETWORK_SLUG,
+        "chain_id": CHAIN_ID,
+        "currency": CURRENCY,
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
     }
@@ -95,7 +106,7 @@ def create_invoice(payload: InvoiceCreate):
     invoice_id = uuid4().hex[:10]
     ts = now_iso()
     # Demo address placeholder. Production should assign chain-specific deposit addresses.
-    payment_address = "0x96a7da081226d1712053c882f9d34855b58d794f"
+    payment_address = PAYMENT_ADDRESS
     with connect() as conn:
         conn.execute(
             "INSERT INTO invoices (id, customer, amount, memo, status, payment_address, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

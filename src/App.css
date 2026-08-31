@@ -93,6 +93,7 @@ input:focus { border-color: #0f766e; box-shadow: 0 0 0 4px rgba(15,118,110,.1); 
 .receipt-state { display: inline-flex; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
 .receipt-state.unpaid { color: #92400e; background: #fef3c7; }
 .receipt-state.paid { color: #065f46; background: #d1fae5; }
+.network-pill { display: inline-flex; margin-left: 8px; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #075985; background: #e0f2fe; }
 .pay-page-card h1 { font-size: clamp(36px, 7vw, 58px); margin: 14px 0 8px; line-height: .96; }
 .pay-page-card > p { color: #64748b; font-size: 18px; margin: 0 0 20px; }
 .pay-amount { font-size: clamp(38px, 8vw, 62px); font-weight: 700; color: #061b31; letter-spacing: -.04em; margin: 18px 0; }

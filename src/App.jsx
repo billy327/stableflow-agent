@@ -27,6 +27,11 @@ function money(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n || 0))
 }
 
+function paymentPayload(invoice) {
+  const chain = invoice.chain_id ? `@${invoice.chain_id}` : ''
+  return `ethereum:${invoice.payment_address}${chain}?value=${invoice.amount}&memo=${encodeURIComponent(invoice.memo || invoice.id)}&token=${invoice.currency || 'USDC'}`
+}
+
 function PaymentPage({ id }) {
   const [invoice, setInvoice] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -47,7 +52,7 @@ function PaymentPage({ id }) {
   if (loading) return <main className="pay-shell"><div className="pay-page-card">Loading invoice...</div></main>
   if (!invoice) return <main className="pay-shell"><div className="pay-page-card"><h1>Invoice not found</h1><p>This payment link is invalid or expired.</p></div></main>
 
-  const qrPayload = `ethereum:${invoice.payment_address}?value=${invoice.amount}&memo=${encodeURIComponent(invoice.memo || invoice.id)}`
+  const qrPayload = paymentPayload(invoice)
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrPayload)}`
   const isPaid = invoice.status === 'paid'
 
@@ -61,18 +66,19 @@ function PaymentPage({ id }) {
     <main className="pay-shell">
       <section className="pay-page-card">
         <a className="pay-brand" href="/"><img src={brandLogo} alt="Stable Flow Agent" /><span>StableFlow</span></a>
-        <div className={`receipt-state ${isPaid ? 'paid' : 'unpaid'}`}>{isPaid ? 'Payment confirmed' : 'Awaiting USDC payment'}</div>
+        <div className={`receipt-state ${isPaid ? 'paid' : 'unpaid'}`}>{isPaid ? 'Payment confirmed' : `Awaiting ${(invoice.currency || 'USDC')} payment`}</div>
+        <div className="network-pill">{invoice.network_name || 'Arc Testnet'}</div>
         <h1>{invoice.customer}</h1>
         <p>{invoice.memo}</p>
-        <div className="pay-amount">{money(invoice.amount)} <span>USDC</span></div>
+        <div className="pay-amount">{money(invoice.amount)} <span>{invoice.currency || 'USDC'}</span></div>
         {isPaid ? (
           <div className="confirmed-box">Receipt ready. This invoice has been marked as paid by the operator.</div>
         ) : (
           <>
             <div className="qr-wrap"><img src={qrUrl} alt="USDC payment QR code" /></div>
-            <label className="copy-field">Payment address<input readOnly value={invoice.payment_address} /></label>
+            <label className="copy-field">Arc Testnet payment address<input readOnly value={invoice.payment_address} /></label>
             <button className="button primary full" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}</button>
-            <p className="fine center">Mock settlement mode: send no funds unless this address is intentionally configured for a real operator.</p>
+            <p className="fine center">Arc Testnet mode: use testnet funds only. Mainnet funds are not expected here.</p>
           </>
         )}
         <div className="pay-meta"><span>Invoice #{invoice.id}</span><span>{invoice.status}</span></div>
@@ -152,14 +158,14 @@ function App() {
 
       <section className="hero stacked" id="top">
         <div className="hero-copy">
-          <div className="badge">Stablecoin payment ops · live MVP</div>
+          <div className="badge">Arc Testnet stablecoin ops · live MVP</div>
           <h1>Payment workflows that make USDC operations feel automatic.</h1>
           <p className="subcopy">Create persistent payment links, track invoice state, and preview treasury splits across merchant, savings, and ops wallets in one clean operator console.</p>
           <div className="actions">
             <a href="#new" className="button primary">Create invoice</a>
             <a href="#dashboard" className="button ghost">View dashboard</a>
           </div>
-          <div className="trust-row"><span>SQLite persistence</span><span>Mock settlement</span><span>No wallet risk</span></div>
+          <div className="trust-row"><span>Arc Testnet</span><span>SQLite persistence</span><span>Manual settlement</span></div>
         </div>
 
         <section className="flow-wide" id="workflow" aria-label="Live payment flow">
@@ -194,7 +200,7 @@ function App() {
           <p className="eyebrow">Invoice creator</p>
           <h2>Create payment link</h2>
           <label>Customer<input value={invoice.customer} onChange={(e) => setInvoice({ ...invoice, customer: e.target.value })} /></label>
-          <label>Amount USDC<input type="number" value={invoice.amount} onChange={(e) => setInvoice({ ...invoice, amount: e.target.value })} /></label>
+          <label>Amount USDC on Arc Testnet<input type="number" value={invoice.amount} onChange={(e) => setInvoice({ ...invoice, amount: e.target.value })} /></label>
           <label>Memo<input value={invoice.memo} onChange={(e) => setInvoice({ ...invoice, memo: e.target.value })} /></label>
           <button className="button primary full" disabled={loading} onClick={createInvoice}>{loading ? 'Creating...' : 'Generate real link'}</button>
           {notice && <p className="success">{notice}</p>}
@@ -204,9 +210,9 @@ function App() {
           <p className="eyebrow light">Payment page</p>
           <h2>{displayInvoice.customer}</h2>
           <p className="memo">{displayInvoice.memo}</p>
-          <div className="amount">{money(displayInvoice.amount)} USDC</div>
+          <div className="amount">{money(displayInvoice.amount)} {displayInvoice.currency || 'USDC'}</div>
           <div className={`status ${displayInvoice.status}`}>{displayInvoice.status}</div>
-          {displayInvoice.payment_address && <p className="address">Pay to: {displayInvoice.payment_address}</p>}
+          {displayInvoice.payment_address && <p className="address">Arc Testnet pay to: {displayInvoice.payment_address}</p>}
           <button className="button primary full" disabled={!displayInvoice.id} onClick={() => updateStatus('paid')}>Mark as paid</button>
           <button className="button ghost dark full" disabled={!displayInvoice.id} onClick={() => updateStatus('unpaid')}>Reset unpaid</button>
         </div>
